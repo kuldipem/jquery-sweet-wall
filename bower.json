@@ -1,0 +1,25 @@
+{
+  "name": "jquery-powerwall",
+  "version": "0.0.1",
+  "authors": [
+    "KULDIP PIPALIYA <kuldipem@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-ui": "jqueryui#~1.11.4",
+    "masonry": "~3.3.2",
+    "isotope": "~2.2.2",
+    "fancybox": "~2.1.5"
+  }
+}
