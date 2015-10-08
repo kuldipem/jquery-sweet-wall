@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta content="Absent" name="author">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>jMosaic - jQuery plugin for align elements</title>
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/jquery-ui/jquery-ui.js"></script>
+  <script src="bower_components/masonry/dist/masonry.pkgd.js"></script>
+  <script src="bower_components/fancybox/source/jquery.fancybox.js"></script>
+  <link rel="stylesheet" type="text/css" href="bower_components/fancybox/source/jquery.fancybox.css" />
+  <script src="bower_components/fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+  <link rel="stylesheet" type="text/css" href="bower_components/fancybox/source/helpers/jquery.fancybox-thumbs.css" />
+  <script src="bower_components/isotope/dist/isotope.pkgd.js"></script>
+
+  <style>
+    body {
+      margin: 0px;
+    }
+
+    #photos {
+      width: 2000px;
+      background-color: black;
+    }
+
+    #photos img {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #photos a {
+      cursor: inherit;
+    }
+
+    .overlay {
+      bottom: 0;
+      left: 0;
+      top: 0;
+      right: 0;
+      position: absolute;
+      background-color: #000000;
+      opacity: 0.800;
+      -webkit-transition: all 300ms ease-out;
+      -moz-transition: all 300ms ease-out;
+      -o-transition: all 300ms ease-out;
+      -ms-transition: all 300ms ease-out;
+      transition: all 300ms ease-out;
+    }
+
+    .grid-item {
+      ease-out;
+    }
+
+    .grid-item:hover .overlay {
+      opacity: 0;
+    }
+
+    .width {
+      /* Just in case there are inline attributes */
+      width: 200px;
+      /*!important;*/
+      height: 162px;
+      /*!important;*/
+    }
+
+    .width-2 {
+      /* Just in case there are inline attributes */
+      width: 400px;
+      /* !important;*/
+      height: 324px;
+      /*!important;*/
+    }
+
+    .grid-item.active {
+      height: 500px;
+      width: 500px;
+      border: solid 8px gray;
+      position: fixed;
+      z-index: 8;
+      left: 30%;
+      top: 10%;
+    }
+
+    #filter {
+      position: fixed;
+      z-index: 1;
+    }
+
+    #filter li {
+      list-style: none;
+      height: 20px;
+      border: solid 1px black;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5);
+      min-width: 100px;
+      text-align: center;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    #parent {
+      overflow: hidden;
+    }
+
+    .fancybox-title-over-wrap {
+      background: none !important;
+      text-align: center;
+      width: 100%;
+      font-size: 18px;
+    }
+
+    .fancybox-opened .fancybox-skin {
+      box-shadow: 0px 0 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .fancybox-skin {
+      background: none !important;
+    }
+
+    .fancybox-image {
+      border: 10px solid #4B4A4C
+    }
+
+    .fancybox-close {
+      top: 25px;
+      right: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <ul id="filter">
+
+  </ul>
+  <div id="parent" style="position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px;">
+
+    <div id="photos" class="grid"></div>
+  </div>
+  <script type="text/javascript">
+    var minTop, minLeft, topLeftImage, topRight, bottomLeft, bottomRight;
+
+    (function($) {
+      $.rand = function(arg) {
+        if ($.isArray(arg)) {
+          return arg[$.rand(arg.length)];
+        } else if (typeof arg === "number") {
+          return Math.floor(Math.random() * arg);
+        } else {
+          return 4; // chosen by fair dice roll
+        }
+      };
+    })(jQuery);
+
+    $(document).ready(function() {
+      var imagesCount = 1000;
+      var divider = 10;
+      if (imagesCount > 100 && imagesCount <= 500) {
+        divider = 25;
+      } else if (imagesCount > 500 && imagesCount <= 1000) {
+        divider = 50;
+      }
+
+      var rows = imagesCount / divider;
+      var cols = imagesCount / rows;
+      var imageAvgWidth = 200;
+      var newWidthOfContainer = cols * imageAvgWidth;
+      $("#photos").css({
+        width: newWidthOfContainer
+      });
+
+      function getRandomSize(min, max) {
+        return Math.round(Math.random() * (max - min) + min);
+      }
+      var category = ['a', 'b', 'c', 'd'];
+
+      function createFilterList() {
+        var filterList = "<li data-filter-for='0'>ALL</li>";
+        for (var i = 0; i < category.length; i++) {
+          filterList += "<li data-filter-for='" + category[i] + "'>" + category[i] + "</li>";
+        }
+        $("#filter").html(filterList);
+      }
+      var list = [];
+      for (var j = 0; j <= 61; j++) {
+        list.push(j);
+      }
+      for (var i = 0; i < imagesCount; i++) {
+        var width = getRandomSize(200, 400);
+        var height = getRandomSize(200, 400);
+        if (i == 4 || i == 8 || i == 20 || i == 50 || i == 80) {
+          var img = 'img/9-' + $.rand(list) + '.jpg';
+          $('#photos').append('<a title="9-' + i + '" data-id="' + i + '" data-category="' + $.rand(category) + '" class="grid-item width-2" href="' + img + '"><img src="' + img + '" alt="pretty kitty"><div class="overlay"></div></a>');
+        } else {
+          var img = 'img/9-' + $.rand(list) + '.jpg';
+          $('#photos').append('<a title="9-' + i + '" data-id="' + i + '" data-category="' + $.rand(category) + '" class="grid-item width" href="' + img + '"><img src="' + img + '" alt="pretty kitty"><div class="overlay"></div></a>');
+        }
+
+      }
+      var $grid;
+      createFilterList();
+      injectSortingData(initSorting);
+
+      function initSorting() {
+        var sortObject = {};
+
+        $.each(category, function(index, el) {
+          sortObject[el] = '[data-order-' + el + ']';
+        });
+
+        sortObject['0'] = '[data-id]'; // for ALL category
+
+        $grid = $('#photos').isotope({
+          itemSelector: '.grid-item',
+          masonry: {
+            columnWidth: 200
+          },
+          getSortData: sortObject,
+          // slow transitions
+          transitionDuration: '0.8s'
+        });
+
+        var centerLeft = -(newWidthOfContainer - $("#parent").width()) / 2;
+        var centerTop = -($("#photos").height() - $("#parent").height()) / 2;
+
+        $("#photos").css({
+          left: centerLeft,
+          top: centerTop
+        });
+        console.log(centerLeft);
+        console.log(centerTop);
+      }
+
+      function injectSortingData(callback) {
+        $.each(category, function(index, el) {
+          var sorted = $('#photos .grid-item').filter('[data-category=' + el + ']'); //.remove();
+          var index = 1;
+          $.each(sorted, function(i, object) {
+            $(object).attr('data-order-' + el, index);
+            index++;
+          });
+          var other = $('#photos .grid-item').not('[data-order-' + el + ']'); //.remove();
+          $.each(other, function(i, object) {
+            $(object).attr('data-order-' + el, index);
+            index++;
+          });
+        });
+        callback();
+
+      }
+
+      $("#filter").on('click', 'li', function(e) {
+        //  $('#photos .grid-item').removeAttr('data-order-id');
+        $('#photos').animate({
+          top: 0,
+          left: 0,
+        }, 1000);
+        var categoryName = $(this).attr("data-filter-for");
+        $grid.isotope({
+          sortBy: categoryName
+        });
+        //console.log('[data-order-' + categoryName.toLowerCase() + ']');
+      });
+
+
+
+      var h = $("#parent").height();
+      var w = $("#parent").width();
+
+      var revertFrom = 50;
+
+      //$("#parent").css({height: w, width: w });
+      $("#photos").draggable({
+        cursor: "move",
+        drag: function(event, ui) {
+          if (ui.position.top > $("#photos").parent().offset().top + revertFrom) {
+            return false;
+          }
+          if (ui.position.left > $("#photos").parent().offset().left + revertFrom) {
+            return false;
+          }
+
+          if ((ui.position.top < 0) &&
+            ((-(ui.position.top)) > (revertFrom + $("#photos").height() - $("#photos").parent().height()))) {
+            return false;
+          }
+
+          if ((ui.position.left < 0) &&
+            ((-(ui.position.left)) > (revertFrom + $("#photos").width() - $("#photos").parent().width()))) {
+            return false;
+          }
+        },
+        start: function(event, ui) {
+
+        },
+        stop: function(event, ui) {
+          top(ui.offset);
+          left(ui.offset);
+          bottom(ui.position);
+          right(ui.position);
+        }
+      });
+
+      function top(offset) {
+        if (offset.top > $("#photos").parent().offset().top) {
+          $("#photos").animate({
+            top: $("#photos").parent().offset().top
+          }, {
+            queue: false,
+            duration: 800
+          });
+        }
+      }
+
+      function left(offset) {
+        if (offset.left > $("#photos").parent().offset().left) {
+          $("#photos").animate({
+            left: $("#photos").parent().offset().left
+          }, {
+            queue: false,
+            duration: 800
+          });
+        }
+      }
+
+      function bottom(position) {
+        if ((position.top < 0) &&
+          ((-(position.top)) > ($("#photos").height() - $("#photos").parent().height()))) {
+          $("#photos").animate({
+            top: $("#photos").offset().top + revertFrom
+          }, {
+            queue: false,
+            duration: 800
+          });
+
+        }
+      }
+
+      function right(position) {
+        if ((position.left < 0) &&
+          ((-(position.left)) > ($("#photos").width() - $("#photos").parent().width()))) {
+          $("#photos").animate({
+            left: $("#photos").offset().left + revertFrom
+          }, {
+            queue: false,
+            duration: 800
+          });
+
+        }
+      }
+
+      minTop = $("#photos > .grid-item:first-child").offset().top || 0, minLeft = $("#photos > .grid-item:first-child").offset().left || 0,
+        topLeftImage = $("#photos > .grid-item:first-child");
+
+      topRightImageMaxLeft = $("#photos > .grid-item:first-child").offset().left || 0,
+        topRightImageMinTop = $("#photos > .grid-item:first-child").offset().top || 0,
+        topRightImage = $("#photos > .grid-item:first-child");
+
+      bottomRightImageMaxLeft = $("#photos > .grid-item:last-child").offset().left || 0,
+        bottomRightImageMaxTop = $("#photos > .grid-item:last-child").offset().top || 0,
+        bottomRightImage = $("#photos > .grid-item:last-child");
+
+      bottomLeftImageMinLeft = $("#photos > .grid-item:last-child").offset().left || 0,
+        bottomLeftImageMaxTop = $("#photos > .grid-item:last-child").offset().top || 0,
+        bottomLeftImage = $("#photos > .grid-item:last-child");
+
+      $("#photos .grid-item").each(function(i, ele) {
+        e = $(ele);
+        // first image in first row on view
+        if (e.offset().top < minTop && e.offset().left < minLeft) {
+          minTop = e.offset().top;
+          minLeft = e.offset().left;
+          topLeftImage = e;
+        }
+        // last image in first row on view
+        if (e.offset().top <= topRightImageMinTop && e.offset().left >= topRightImageMaxLeft) {
+          topRightImageMinTop = e.offset().top;
+          topRightImageMaxLeft = e.offset().left;
+          topRightImage = e;
+        }
+        // last image in last row on view
+        if (e.offset().top >= bottomRightImageMaxTop && e.offset().left > bottomRightImageMaxLeft) {
+          bottomRightImageMaxTop = e.offset().top;
+          bottomRightImageMaxLeft = e.offset().left;
+          bottomRightImage = e;
+        }
+
+        // first image in last row on view
+        if (e.offset().top >= bottomLeftImageMaxTop && e.offset().left < bottomLeftImageMinLeft) {
+          bottomLeftImageMaxTop = e.offset().top;
+          bottomLeftImageMinLeft = e.offset().left;
+          bottomLeftImage = e;
+        }
+
+      });
+      $("#photos > a").fancybox({
+        beforeLoad: function() {
+          $(this.element).attr("data-org-left", $(this.element).offset().left);
+          $(this.element).attr("data-org-top", $(this.element).offset().top);
+        },
+        openEffect: 'elastic',
+        closeEffect: 'elastic',
+        helpers: {
+          title: {
+            type: 'over'
+          }
+        }
+      });
+
+    });
+  </script>
+</body>
+
+</html>
